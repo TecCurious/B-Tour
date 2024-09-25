@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  name String
+  phone String
+  passwordHash String
+}
+
+model logindata {
+  id String @id @default(uuid())
+  email String 
+  name String
+  createdAt  DateTime   @default(now())
+}
+
+model createteam {
+  id String @id @default(uuid())
+  teamid String @unique
+  teamname String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model createmember {
+  id String @id @default(uuid())
+  teamid String
+  teamname String
+  memid String
+  memname String
+  mememail String
+  memphone String
+  memrole String
+  isverfied Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model memberverify {
+  id String @id @default(uuid())
+  mememail String
+  creatememid String @unique
+  teamid String
+  teamname String
+  randomcode Int
+  createdAt DateTime @default(now())
+}
+
+model createpayment {
+  id String @id @default(uuid())
+  teamid String
+  teamname String
+  creatememid String
+  memname String
+  mememail String
+  amount Int
+  createdAt DateTime @default(now())
+}
+
+model payments {
+  id String @id @default(uuid())
+  teamid String
+  creatememid String @unique
+  mememail String
+  memname String
+  paymentin Int
+  paymentout Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model passbook {
+  id String @id @default(uuid())
+  teamid String
+  creatememid String
+  mememail String
+  amount Int
+  paymenttype String
+  createdAt DateTime @default(now())
+}
