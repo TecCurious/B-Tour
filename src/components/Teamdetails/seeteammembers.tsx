@@ -1,11 +1,10 @@
 "use client";
-import { RootState } from "@/app/store";
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import FindMembers from "../Fetchdata/findmembers";
-import Verifymember from "@/auth/verifymember";
+import Verifymember from "@/action/verifymember";
 import { useRouter } from "next/navigation";
-import Getrandnum from "@/auth/getrandomnumber";
+import Getrandnum from "@/action/getrandomnumber";
+import { UserMinus } from "lucide-react";
 
 interface TeamMember {
   id: string;
@@ -23,8 +22,6 @@ interface TeamMember {
 
 const Seeteammembers = (params: any) => {
   const router = useRouter();
-  const user = useSelector((state: RootState) => state.userState.user);
-  const mememail = user ? user : "";
   const teamid = params.teamid.params.team;
   const [teammembers, setTeammembers] = useState<TeamMember[] | string>([]);
   const [randomcode, setRandomcode] = useState<number>(0);
@@ -32,23 +29,33 @@ const Seeteammembers = (params: any) => {
   const [admin, setAdmin] = useState(false);
   const [showcode, setShowcode] = useState(false);
   const [fetchedrandnum, setFetchedrandnum] = useState<number>();
+  const [mememail, setMemEmail] = useState<string>(""); // Ensure mememail is always a string
 
-  useEffect(() => {
+  useEffect(  () => {
+    const userEmail =  localStorage.getItem("email"); // Retrieve user email from local storage
+    if (userEmail) {
+      setMemEmail(userEmail);
+    } else {
+      setMemEmail(""); // Set to empty string if no email is found
+    }
+    console.log(userEmail);
+
     const verifyUser = async () => {
-      const teammem = await FindMembers(mememail, teamid);
+      console.log(userEmail);
+      const teammem = await FindMembers(userEmail || "", teamid); // Use empty string if userEmail is null
       setTeammembers(teammem);
     };
     verifyUser();
-  }, [mememail, teamid]);
+  }, [teamid]);
 
   const handleSubmit = async () => {
-    const responce = await Verifymember(id, randomcode, mememail, teamid);
+    const response = await Verifymember(id, randomcode, mememail, teamid);
     router.refresh();
   };
 
   const handleshowcode = async (creatememid: string) => {
-    const responce = await Getrandnum(creatememid);
-    setFetchedrandnum(responce);
+    const response = await Getrandnum(creatememid);
+    setFetchedrandnum(response);
     setShowcode(true);
     router.refresh();
   };
@@ -125,7 +132,8 @@ const Seeteammembers = (params: any) => {
                           <input
                             value={randomcode}
                             onChange={(e) => {
-                              setRandomcode(parseInt(e.target.value, 10)), setId(teammem.id);
+                              setRandomcode(parseInt(e.target.value, 10));
+                              setId(teammem.id);
                             }}
                             className="border-2 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
                             placeholder="Enter verification code"

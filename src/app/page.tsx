@@ -59,7 +59,7 @@ export default async function Home() {
                >
                  Get Started
                </Button> */}
-                <Link href={'/signup'}>
+                <Link href={'/register'}>
          <button className="py-2 px-5 bg-green-700 text-white border rounded-full">Get Started</button>
        </Link>
        <br/>

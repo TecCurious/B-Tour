@@ -1,17 +1,21 @@
 'use client'
 
-import { RootState } from "@/app/store";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
-import { createmember } from "@/auth/createmem";
+import React, { useState, useEffect } from "react";
+import { createmember } from "@/action/createmem";
 
 const Createteam = () => {
-    const user = useSelector((state: RootState) => state.userState.user);
-    const email = user ? user : '';
+    const [email, setEmail] = useState<string>('');
     const [teamid, setTeamid] = useState('');
     const [teamname, setTeamname] = useState('');
     const [message, setMessage] = useState('');
     const [formVisible, setFormVisible] = useState(false); // State to control form visibility
+
+    useEffect(() => {
+        const storedEmail = localStorage.getItem('email');
+        if (storedEmail) {
+            setEmail(storedEmail);
+        }
+    }, []);
 
     const handleSubmit = async () => {
         if (!teamid || !teamname) {
@@ -38,8 +42,7 @@ const Createteam = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center rounded-lg  ">
-            {/* <h1 className="text-3xl font-bold mb-4">Join a Team</h1> */}
+        <div className="flex flex-col items-center justify-center rounded-lg">
             <button 
                 onClick={() => setFormVisible(true)} 
                 className="px-2 bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700 transition duration-200 mb-4"

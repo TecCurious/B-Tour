@@ -2,9 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import FindMembers from "../Fetchdata/findmembers";
-import { RootState } from "@/app/store";
-import { useSelector } from "react-redux";
-import PaymentEntry from "./paymententry";
+import createExpense from "./paymententry";
 import { useRouter } from "next/navigation";
 
 interface TeamMember {
@@ -23,15 +21,25 @@ interface TeamMember {
 
 const Createpayment = (params: any) => {
     const teamid = params.teamid.params.team;
-    const user = useSelector((state: RootState) => state.userState.user);
-    const mememail = user ? user : "";
+
+    // Get email from local storage and set it to state
+    const [mememail, setMemEmail] = useState<string>('');
     const router = useRouter();
 
-    const [teammembers, setTeammembers] = useState<TeamMember[] | string>([]);
+    // Update teammembers state type to be strictly TeamMember[]
+    const [teammembers, setTeammembers] = useState<TeamMember[]>([]);
     const [admin, setAdmin] = useState(false);
     const [selectedEmail, setSelectedEmail] = useState<string>('');
     const [amount, setAmount] = useState<number>(0);
     const [message, setMessage] = useState<string>('');
+
+    // Set mememail from local storage on component mount
+    useEffect(() => {
+        const emailFromLocalStorage = localStorage.getItem('email');
+        if (emailFromLocalStorage) {
+            setMemEmail(emailFromLocalStorage);
+        }
+    }, []);
 
     const handleEmailChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedEmail(event.target.value);
@@ -39,7 +47,7 @@ const Createpayment = (params: any) => {
 
     const handlesubmit = async (teamid: string, mememail: string, amount: number) => {
         try {
-            const response = await PaymentEntry(teamid, mememail, amount);
+            const response = await createExpense(teamid, mememail, amount);
             if (response === true) {
                 setAmount(0);
                 setSelectedEmail('');
@@ -56,9 +64,20 @@ const Createpayment = (params: any) => {
     useEffect(() => {
         const verifyUser = async () => {
             const teammem = await FindMembers(mememail, teamid);
-            setTeammembers(teammem);
+            
+            // Check if the response is an array or a string
+            if (Array.isArray(teammem)) {
+                setTeammembers(teammem);
+            } else {
+                // Handle the case where it's a string (error message)
+                setMessage(teammem); // Optionally store the error message
+                setTeammembers([]); // Clear teammembers
+            }
         };
-        verifyUser();
+
+        if (mememail) {
+            verifyUser();
+        }
     }, [mememail, teamid]);
 
     useEffect(() => {
@@ -81,7 +100,7 @@ const Createpayment = (params: any) => {
                         value={amount}
                         className="w-full max-w-xs px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black"
                         placeholder="Enter Amount"
-                        onChange={(e) => setAmount(parseInt(e.target.value))}
+                        onChange={(e) => setAmount(parseInt(e.target.value) || 0)}
                     />
                     <select
                         id="emailDropdown"

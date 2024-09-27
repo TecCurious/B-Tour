@@ -1,0 +1,81 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table User {
+  id String [pk]
+  name String [not null]
+  email String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  teams TeamMember [not null]
+  createdTeams Team [not null]
+}
+
+Table Team {
+  id String [pk]
+  name String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  creatorId String [not null]
+  creator User [not null]
+  members TeamMember [not null]
+  expenses Expense [not null]
+}
+
+Table TeamMember {
+  id String [pk]
+  userId String [not null]
+  teamId String [not null]
+  joinedAt DateTime [default: `now()`, not null]
+  user User [not null]
+  team Team [not null]
+  paidAmount Float [not null, default: 0]
+  payableAmount Float [not null, default: 0]
+  createdExpenses Expense [not null]
+  involvedExpenses ExpenseSplit [not null]
+
+  indexes {
+    (userId, teamId) [unique]
+  }
+}
+
+Table Expense {
+  id String [pk]
+  title String [not null]
+  amount Float [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  teamId String [not null]
+  creatorId String [not null]
+  team Team [not null]
+  creator TeamMember [not null]
+  splits ExpenseSplit [not null]
+}
+
+Table ExpenseSplit {
+  id String [pk]
+  expenseId String [not null]
+  memberId String [not null]
+  amount Float [not null]
+  expense Expense [not null]
+  member TeamMember [not null]
+
+  indexes {
+    (expenseId, memberId) [unique]
+  }
+}
+
+Ref: Team.creatorId > User.id
+
+Ref: TeamMember.userId > User.id
+
+Ref: TeamMember.teamId > Team.id
+
+Ref: Expense.teamId > Team.id
+
+Ref: Expense.creatorId > TeamMember.id
+
+Ref: ExpenseSplit.expenseId > Expense.id
+
+Ref: ExpenseSplit.memberId > TeamMember.id

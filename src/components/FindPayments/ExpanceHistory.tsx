@@ -1,9 +1,7 @@
 'use client'
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react";
 import FindMembers from "../Fetchdata/findmembers";
-import { RootState } from "@/app/store";
-import { useSelector } from "react-redux";
 import Fetchpayments from "../Fetchdata/fetchpayments";
 
 interface TeamMember {
@@ -18,7 +16,7 @@ interface TeamMember {
     isverfied: boolean;
     createdAt: Date;
     updatedAt: Date;
-};
+}
 
 interface Payment {
     id: string;
@@ -29,31 +27,35 @@ interface Payment {
     mememail: string;
     amount: number;
     createdAt: Date;
-};
+}
 
 const Findpayments = (params: any) => {
     const teamid = params.teamid.params.team;
-    const user = useSelector((state: RootState) => state.userState.user)
-    const mememail = user ? user : ""
-
+    
+    // Get the email from localStorage
+    const [mememail, setMemEmail] = useState<string>("");
     const [payments, setPayments] = useState<Payment[] | string>([]);
     const [admin, setAdmin] = useState(false);
 
     useEffect(() => {
+        // Retrieve email from localStorage
+        const email = localStorage.getItem('email') || ""; // Ensure a fallback to an empty string
+        setMemEmail(email);
+
         const fetchData = async () => {
-            const teammem = await FindMembers(mememail, teamid);
+            const teammem = await FindMembers(email, teamid);
 
             if (Array.isArray(teammem)) {
-                const isAdmin = teammem.some((mem) => mem.mememail === mememail && mem.memrole === 'admin');
+                const isAdmin = teammem.some((mem) => mem.mememail === email && mem.memrole === 'admin');
                 setAdmin(isAdmin);
             }
 
-            const response = await Fetchpayments(mememail, teamid, admin);
+            const response = await Fetchpayments(email, teamid, admin);
             setPayments(response);
         };
 
         fetchData();
-    }, [mememail, teamid, admin]);
+    }, [teamid, admin]);
 
     return (
         <div className="">

@@ -1,8 +1,6 @@
 'use client'
 
-import { RootState } from "@/app/store";
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import Findteams from "../Fetchdata/findcreatedteams";
 import Link from "next/link";
 
@@ -21,19 +19,26 @@ interface TeamMember {
 }
 
 const Joinedteams = () => {
-    const user = useSelector((state: RootState) => state.userState.user);
-    const email = user ? user : '';
+    const [email, setEmail] = useState<string>('');
+    const [teams, setTeams] = useState<TeamMember[]>([]);
     const memrole = "user";
 
-    const [teams, setTeams] = useState<TeamMember[]>([]);
+    useEffect(() => {
+        const storedEmail = localStorage.getItem('email');
+        if (storedEmail) {
+            setEmail(storedEmail);
+        }
+    }, []);
 
     useEffect(() => {
         const fetchTeams = async () => {
-            try {
-                const teamsData = await Findteams(email, memrole);
-                setTeams(teamsData);
-            } catch (error) {
-                console.error('Error fetching teams:', error);
+            if (email) {
+                try {
+                    const teamsData = await Findteams(email, memrole);
+                    setTeams(teamsData);
+                } catch (error) {
+                    console.error('Error fetching teams:', error);
+                }
             }
         };
 

@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma";
 
-const PaymentEntry = async (teamid: string, mememail: string, amount: number) => {
+const createExpense = async (teamid: string, mememail: string, amount: number) => {
     // Find the user based on team ID and email
     const user = await prisma.createmember.findMany({
         where: {
@@ -65,4 +65,4 @@ const PaymentEntry = async (teamid: string, mememail: string, amount: number) =>
     return false;
 };
 
-export default PaymentEntry;
+export default createExpense;

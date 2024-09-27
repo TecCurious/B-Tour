@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from '@/auth/signIn';
+import { signIn } from '@/action/signIn';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
 const SignInForm = () => {
@@ -12,26 +12,39 @@ const SignInForm = () => {
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(null); // State for user data
+  // const [user, setUser] = useState(null); // State for user data
+
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("email");
+    if (storedEmail) {
+      router.push('/dashboard');
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage('Signing in...');
 
+   
+
     try {
       const signInResponse = await signIn(email, password);
       
       if (String(signInResponse) === 'true') {
         // setUser(email); // Store user data in state
+        localStorage.setItem  ("email", email);
         router.push('/dashboard');
       } else {
         setMessage('Invalid credentials. Please try again.');
         router.refresh();
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log(error);
       setMessage('An error occurred. Please try again.');
+      console.log(error)
+      
     } finally {
       setLoading(false);
     }

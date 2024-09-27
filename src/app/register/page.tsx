@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from 'react';
-import { signUp } from '../../auth/signUp';
+import React, { useState, useEffect } from 'react';
+import { signUp } from '../../action/signUp';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, User, Phone, Lock } from 'lucide-react';
 import Link from 'next/link';
@@ -18,6 +18,14 @@ const SignUpForm = () => {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
+
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("email");
+    if (storedEmail) {
+      router.push('/dashboard');
+    }
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

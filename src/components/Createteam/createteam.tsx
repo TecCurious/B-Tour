@@ -1,26 +1,23 @@
-'use client'
+'use client';
 
-import { RootState } from "@/app/store";
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { Createteamcomp } from "@/auth/createteam";
-import { useRouter } from "next/navigation";
-import { generateRandomTeamId } from "../Generaterandom/randomtext";
+import React, { useEffect, useState } from 'react';
+import { Createteamcomp } from '@/action/createteam';
+import { useRouter } from 'next/navigation';
+import { generateRandomTeamId } from '../Generaterandom/randomtext';
 
-const Createteam = ({ initialRandomTeamId }: { initialRandomTeamId: string }) => {
-    const user = useSelector((state: RootState) => state.userState.user);
-    const email = user ? user : '';
-    const [teamid, setTeamid] = useState(initialRandomTeamId);
+const Createteam = () => {
+    // Retrieve email from local storage and default to an empty string if null
+    const email = typeof window !== 'undefined' ? localStorage.getItem('email') || '' : '';
+    const [teamid, setTeamid] = useState(generateRandomTeamId());
     const [teamname, setTeamname] = useState('');
     const [message, setMessage] = useState('');
     const [formVisible, setFormVisible] = useState(false); // State to control form visibility
 
     const router = useRouter();
 
-    
     const handleSubmit = async () => {
-        if (!teamname || !teamid) {
-            setMessage('Please fill in all fields.');
+        if (!teamname || !teamid || !email) {
+            setMessage('Please fill in all fields and ensure you are logged in.');
             return;
         }
 
@@ -28,34 +25,33 @@ const Createteam = ({ initialRandomTeamId }: { initialRandomTeamId: string }) =>
 
         try {
             await Createteamcomp(email, teamid, teamname);
-            setTeamid('');
-            setTeamname('');
+            setTeamid(''); // Reset team ID
+            setTeamname(''); // Reset team name
             setMessage('Team created successfully!');
-            router.refresh();
+            router.refresh(); // Refresh the router to reflect the changes
         } catch (err) {
             console.log(err);
             setMessage('Error creating team. Please try again.');
         }
     };
-    
-    useEffect(() => {
-        if (!initialRandomTeamId) {
-            setTeamid(generateRandomTeamId());
-        }
-    }, [initialRandomTeamId]);
+
+    // useEffect(() => {
+    //     if (!initialRandomTeamId) {
+    //         setTeamid(generateRandomTeamId());
+    //     }
+    // }, [initialRandomTeamId]);
 
     return (
-        <div className="flex flex-col items-center  justify-end ">
-            {/* <h1 className="text-2xl font-bold mb-4">Create a New Team</h1> */}
+        <div className="flex flex-col items-center justify-end ">
             <button 
                 onClick={() => setFormVisible(true)} 
-                className=" flex justify-end px-2 bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700 transition duration-200 mb-4"
+                className="flex justify-end px-2 bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700 transition duration-200 mb-4"
             >
                 Create a New Team
             </button>
             {formVisible && (
                 <div className="bg-white p-4 rounded-lg shadow-md w-full max-w-md">
-                    <h2 className="text-lg mb-2">Team ID: <span className="font-semibold">{teamid}</span></h2>
+                    {/* <h2 className="text-lg mb-2">Team ID: <span className="font-semibold">{teamid}</span></h2> */}
                     <input 
                         type="text" 
                         value={teamname} 

@@ -1,6 +1,6 @@
-import Findpayments from "@/components/FindPayments/finpayments";
+import Findpayments from "@/components/FindPayments/ExpanceHistory";
 import Seeteammembers from "@/components/Teamdetails/seeteammembers";
-import Createpayment from "@/components/createpayment/createpayment";
+import Createpayment from "@/components/createpayment/CreateExpence";
 import Transactions from "@/components/dues/transactiondue";
 import Link from "next/link";
 import React from "react";
@@ -8,7 +8,7 @@ import React from "react";
 const Teamdetail = (params: any) => {
     return (
         <div >
-            <Link href={"/home"}>
+            <Link href={"/dashboard"}>
             <div>Cancel</div>
             </Link>
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -26,7 +26,7 @@ const Teamdetail = (params: any) => {
        
 
             <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-                <Transactions teamid={params} />
+                {/* <Transactions teamid={params} /> */}
             </div>
             </div>
             <hr className="border-black border-[2px] my-6" />

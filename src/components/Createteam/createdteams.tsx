@@ -1,8 +1,6 @@
 'use client'
 
-import { RootState } from "@/app/store";
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import Findteams from "../Fetchdata/findcreatedteams";
 import Link from "next/link";
 
@@ -21,19 +19,26 @@ interface TeamMember {
 }
 
 const Createdteams = () => {
-    const user = useSelector((state: RootState) => state.userState.user);
-    const email = user ? user : '';
+    const [email, setEmail] = useState<string>('');
+    const [teams, setTeams] = useState<TeamMember[]>([]);
     const memrole = "admin";
 
-    const [teams, setTeams] = useState<TeamMember[]>([]);
+    useEffect(() => {
+        const storedEmail = localStorage.getItem('email');
+        if (storedEmail) {
+            setEmail(storedEmail);
+        }
+    }, []);
 
     useEffect(() => {
         const fetchTeams = async () => {
-            try {
-                const teamsData = await Findteams(email, memrole);
-                setTeams(teamsData);
-            } catch (error) {
-                console.error('Error fetching teams:', error);
+            if (email) {
+                try {
+                    const teamsData = await Findteams(email, memrole);
+                    setTeams(teamsData);
+                } catch (error) {
+                    console.error('Error fetching teams:', error);
+                }
             }
         };
 
@@ -59,7 +64,7 @@ const Createdteams = () => {
                                 <td className="py-2 px-4 border-b text-center">{team.teamid}</td>
                                 <td className="py-2 px-4 border-b text-center">{team.teamname}</td>
                                 <td className="py-2 px-4 border-b text-center">
-                                    <Link href={`/${team.teamid}/deatils`}>
+                                    <Link href={`/${team.teamid}/details`}>
                                         <button className="bg-blue-600 text-white py-1 px-3 rounded-md hover:bg-blue-700 transition duration-200">
                                             View Details
                                         </button>

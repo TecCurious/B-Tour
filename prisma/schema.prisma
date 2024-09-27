@@ -5,87 +5,72 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id String @id @default(uuid())
-  email String @unique
-  name String
-  phone String
-  passwordHash String
-}
-
-model logindata {
-  id String @id @default(uuid())
-  email String 
-  name String
-  createdAt  DateTime   @default(now())
-}
-
-model createteam {
-  id String @id @default(uuid())
-  teamid String @unique
-  teamname String
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String   // Hashed password
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  teams     TeamMember[]
+  createdTeams Team[] @relation("TeamCreator")
 }
 
-model createmember {
-  id String @id @default(uuid())
-  teamid String
-  teamname String
-  memid String
-  memname String
-  mememail String
-  memphone String
-  memrole String
-  isverfied Boolean
+model Team {
+  id        String   @id @default(uuid())
+  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  creatorId String
+  creator   User     @relation("TeamCreator", fields: [creatorId], references: [id])
+  members   TeamMember[]
+  expenses  Expense[]
 }
 
-model memberverify {
-  id String @id @default(uuid())
-  mememail String
-  creatememid String @unique
-  teamid String
-  teamname String
-  randomcode Int
-  createdAt DateTime @default(now())
+model TeamMember {
+  id        String   @id @default(uuid())
+  userId    String
+  teamId    String
+  joinedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  team      Team     @relation(fields: [teamId], references: [id])
+  paidAmount Float   @default(0)
+  payableAmount Float @default(0)
+  createdExpenses Expense[] @relation("ExpenseCreator")
+  involvedExpenses ExpenseSplit[]
+
+  @@unique([userId, teamId])
 }
 
-model createpayment {
-  id String @id @default(uuid())
-  teamid String
-  teamname String
-  creatememid String
-  memname String
-  mememail String
-  amount Int
-  createdAt DateTime @default(now())
-}
-
-model payments {
-  id String @id @default(uuid())
-  teamid String
-  creatememid String @unique
-  mememail String
-  memname String
-  paymentin Int
-  paymentout Int
+model Expense {
+  id        String   @id @default(uuid())
+  title     String
+  amount    Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  teamId    String
+  creatorId String
+  team      Team     @relation(fields: [teamId], references: [id])
+  creator   TeamMember @relation("ExpenseCreator", fields: [creatorId], references: [id])
+  splits    ExpenseSplit[]
 }
 
-model passbook {
-  id String @id @default(uuid())
-  teamid String
-  creatememid String
-  mememail String
-  amount Int
-  paymenttype String
-  createdAt DateTime @default(now())
+model ExpenseSplit {
+  id        String   @id @default(uuid())
+  expenseId String
+  memberId  String
+  amount    Float
+  expense   Expense  @relation(fields: [expenseId], references: [id])
+  member    TeamMember @relation(fields: [memberId], references: [id])
+
+  @@unique([expenseId, memberId])
 }
