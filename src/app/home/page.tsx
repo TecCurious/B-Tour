@@ -45,7 +45,8 @@ export default function Home() {
                     <Allteams/>
                 ): null}
             </div>
-            )}
+            ) }
         </>
+        
     );
 };

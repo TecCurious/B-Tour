@@ -13,10 +13,12 @@
     "@reduxjs/toolkit": "^2.0.1",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^2.4.3",
+    "lucide-react": "^0.446.0",
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18.2.0",
-    "react-redux": "^9.0.4"
+    "react-redux": "^9.0.4",
+    "shadcn-ui": "^0.9.1"
   },
   "devDependencies": {
     "@types/node": "^20",
