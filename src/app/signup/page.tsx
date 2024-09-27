@@ -1,8 +1,6 @@
-"use client"
+"use client";
 import React, { useState } from 'react';
 import { signUp } from '../../auth/signUp';
-import { useDispatch } from 'react-redux';
-import { adduser } from '@/slices/counterSlice';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, User, Phone, Lock } from 'lucide-react';
 import Link from 'next/link';
@@ -19,10 +17,9 @@ const SignUpForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const dispatch = useDispatch();
   const router = useRouter();
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prevData => ({
       ...prevData,
@@ -30,7 +27,7 @@ const SignUpForm = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formData.password !== formData.repassword) {
       setMessage("Passwords do not match");
@@ -42,9 +39,7 @@ const SignUpForm = () => {
 
     try {
       const response = await signUp(formData.email, formData.name, formData.phone, formData.password);
-      setMessage(response);
-      dispatch(adduser(formData.email));
-      router.push('/home');
+      router.push('/dashboard');
     } catch (error) {
       setMessage("An error occurred during sign up");
     } finally {
@@ -54,15 +49,10 @@ const SignUpForm = () => {
 
   return (
     <div className="flex p-8 bg-gray-100">
-      {/* Left side with background image */}
-      <div className="hidden lg:block lg:w-1/2 bg-cover bg-center" style={{backgroundImage: "url('/image/bt.jpg')"}}></div>
-
-      {/* Right side with form */}
+      <div className="hidden lg:block lg:w-1/2 bg-cover bg-center" style={{ backgroundImage: "url('/image/bt.jpg')" }}></div>
       <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-24">
         <div className="max-w-md w-full mx-auto bg-white shadow-lg rounded-lg p-8">
-          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-6">
-            Create your account
-          </h2>
+          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-6">Create your account</h2>
           <form className="space-y-2" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div className="relative">
@@ -180,8 +170,8 @@ const SignUpForm = () => {
             </div>
           </form>
           <Link href={'/signin'}>
-         <button className="py-2 px-5 bg-green-700 text-white border rounded-full">Get Started</button>
-       </Link>
+            <button className="py-2 px-5 bg-green-700 text-white border rounded-full">Get Started</button>
+          </Link>
 
           {message && (
             <div className={`mt-4 text-center text-sm ${message.includes("error") ? "text-red-600" : "text-green-600"}`}>

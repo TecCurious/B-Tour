@@ -1,11 +1,8 @@
-"use client"
+"use client";
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from '@/auth/signIn';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
-import { adduser } from '@/slices/counterSlice';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
 const SignInForm = () => {
@@ -15,9 +12,7 @@ const SignInForm = () => {
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const user = useSelector((state: RootState) => state.userState.user);
-  const dispatch = useDispatch();
+  const [user, setUser] = useState(null); // State for user data
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +23,8 @@ const SignInForm = () => {
       const signInResponse = await signIn(email, password);
       
       if (String(signInResponse) === 'true') {
-        dispatch(adduser(email));
-        router.push('/home');
+        // setUser(email); // Store user data in state
+        router.push('/dashboard');
       } else {
         setMessage('Invalid credentials. Please try again.');
         router.refresh();
