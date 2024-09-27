@@ -1,12 +1,11 @@
 'use client'
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react";
 import FindMembers from "../Fetchdata/findmembers";
 import { RootState } from "@/app/store";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import DueEntry from "./createdue";
-
 
 interface TeamMember {
     id: string;
@@ -24,8 +23,8 @@ interface TeamMember {
 
 const Transactions = (params: any) => {
     const teamid = params.teamid.params.team;
-    const user = useSelector((state: RootState) => state.userState.user)
-    const mememail = user ? user : ""
+    const user = useSelector((state: RootState) => state.userState.user);
+    const mememail = user ? user : "";
     const router = useRouter();
 
     const [teammembers, setTeammembers] = useState<TeamMember[] | string>([]);
@@ -35,38 +34,44 @@ const Transactions = (params: any) => {
     const [message, setMessage] = useState<string>('');
     const [paymenttype, setPaymenttype] = useState('recive');
 
+    // Handle email selection change
     const handleEmailChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedEmail(event.target.value);
     };
 
-    const handlesubmit = async (teamid: string, mememail: string,selectedEmail:string, amount: number, paymenttype:string) => {
+    // Handle submission of the form
+    const handleSubmit = async (teamid: string, mememail: string, selectedEmail: string, amount: number, paymenttype: string) => {
         try {
-            const res = await DueEntry(teamid,mememail,selectedEmail,amount,paymenttype);
+            const res = await DueEntry(teamid, mememail, selectedEmail, amount, paymenttype);
 
             if (res === true) {
-                setAmount(0);
-                setPaymenttype('recive');
-                setSelectedEmail('');
+                resetForm();
                 router.refresh();
+            } else {
+                setMessage("User not verified or there might be an issue. Try contacting our developers: asrweb7@gmail.com");
             }
-            else {
-                setMessage("user not verified or there might be an issue try contacting our developers mail:- asrweb7@gmail.com")
-            }
-        }
-        catch (err) {
+        } catch (err) {
             console.log(err);
         }
     };
 
-    useEffect(() => {
-        const verifyUser = async () => {
-            const teammem = await FindMembers(mememail, teamid);
+    // Reset form after successful submission
+    const resetForm = () => {
+        setAmount(0);
+        setPaymenttype('recive');
+        setSelectedEmail('');
+    };
 
+    // Fetch team members on initial load
+    useEffect(() => {
+        const fetchMembers = async () => {
+            const teammem = await FindMembers(mememail, teamid);
             setTeammembers(teammem);
         };
-        verifyUser();
+        fetchMembers();
     }, [mememail, teamid]);
 
+    // Check if the current user is an admin
     useEffect(() => {
         if (Array.isArray(teammembers)) {
             teammembers.forEach((mem) => {
@@ -78,38 +83,70 @@ const Transactions = (params: any) => {
     }, [teammembers, mememail]);
 
     return (
-        <div className="">
-            <h1 className="text-[45px] m-[10px] p-[8px] text-center"> Create a Payment </h1>
-            <button className={`m-[10px] p-[20px] border-[4px] border-black hover:bg-black hover:bg-opacity-30 ${paymenttype === 'recive' ? "bg-black bg-opacity-30":""}`} onClick={()=> setPaymenttype('recive')}>
-                Recive
-            </button>
-            <button className={`m-[10px] p-[20px] border-[4px] border-black hover:bg-black hover:bg-opacity-30 ${paymenttype === 'send' ? "bg-black bg-opacity-30":""}`} onClick={()=> setPaymenttype('send')}>
-                Send
-            </button>
+        <div className="p-[20px]">
+            <h1 className="text-[45px] m-[10px] p-[8px] text-center">Create a Payment</h1>
+
+            {/* Payment Type Buttons */}
+            <div className="text-center">
+                <button
+                    className={`m-[10px] p-[20px] border-[4px] border-black hover:bg-black hover:bg-opacity-30 ${paymenttype === 'recive' ? "bg-black bg-opacity-30" : ""}`}
+                    onClick={() => setPaymenttype('recive')}
+                >
+                    Receive
+                </button>
+                <button
+                    className={`m-[10px] p-[20px] border-[4px] border-black hover:bg-black hover:bg-opacity-30 ${paymenttype === 'send' ? "bg-black bg-opacity-30" : ""}`}
+                    onClick={() => setPaymenttype('send')}
+                >
+                    Send
+                </button>
+            </div>
+
+            {/* Admin Access Section */}
             {admin ? (
                 <div className="m-[60px] mt-[20px] p-[10px] text-center">
-                    <input type="number" value={amount} className="border-[2px] border-black" placeholder="Enter Amount" onChange={(e) => setAmount(parseInt(e.target.value))} />
-                    <select id="emailDropdown" value={selectedEmail} onChange={handleEmailChange} className="m-[8px] ml-[20px]">
+                    {/* Amount Input */}
+                    <input
+                        type="number"
+                        value={amount}
+                        className="border-[2px] border-black p-[5px] rounded-[4px]"
+                        placeholder="Enter Amount"
+                        onChange={(e) => setAmount(parseInt(e.target.value))}
+                    />
+
+                    {/* Email Dropdown */}
+                    <select
+                        id="emailDropdown"
+                        value={selectedEmail}
+                        onChange={handleEmailChange}
+                        className="m-[8px] ml-[20px] p-[5px] border-[2px] border-black rounded-[4px]"
+                    >
                         <option value="">Select an email</option>
-                        {Array.isArray(teammembers) ? (
-                            <>
-                                {teammembers.map((teamMember) => (
-                                    <option key={teamMember.memname} value={teamMember.mememail}>
-                                        {teamMember.mememail}
-                                    </option>
-                                ))}
-                            </>
-                        ) : null}
+                        {Array.isArray(teammembers) && teammembers.map((teamMember) => (
+                            <option key={teamMember.memname} value={teamMember.mememail}>
+                                {teamMember.mememail}
+                            </option>
+                        ))}
                     </select>
 
-                    <button className="m-[8px] ml-[20px] p-[4px] px-[10px] bg-black rounded-[6px] bg-opacity-30" onClick={() => handlesubmit(teamid,mememail, selectedEmail, amount, paymenttype)}>Submit</button>
+                    {/* Submit Button */}
+                    <button
+                        className="m-[8px] ml-[20px] p-[10px] bg-black text-white rounded-[6px] hover:bg-opacity-80"
+                        onClick={() => handleSubmit(teamid, mememail, selectedEmail, amount, paymenttype)}
+                    >
+                        Submit
+                    </button>
                 </div>
             ) : (
-                <div className="">
-                    <h1 className="text-[25px] text-center">You Don't have access to add Payments</h1>
+                <div className="text-center">
+                    <h1 className="text-[25px]">You don't have access to add payments.</h1>
                 </div>
             )}
-            <h1 className="text-[20px] text-center">{message}</h1>
+
+            {/* Error or Success Message */}
+            {message && (
+                <h1 className="text-[20px] text-center text-red-500">{message}</h1>
+            )}
         </div>
     );
 };

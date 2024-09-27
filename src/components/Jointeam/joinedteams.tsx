@@ -21,9 +21,8 @@ interface TeamMember {
 }
 
 const Joinedteams = () => {
-    const user = useSelector((state: RootState) => state.userState.user)
+    const user = useSelector((state: RootState) => state.userState.user);
     const email = user ? user : '';
-    const mememail = email;
     const memrole = "user";
 
     const [teams, setTeams] = useState<TeamMember[]>([]);
@@ -31,7 +30,7 @@ const Joinedteams = () => {
     useEffect(() => {
         const fetchTeams = async () => {
             try {
-                const teamsData = await Findteams(mememail, memrole);
+                const teamsData = await Findteams(email, memrole);
                 setTeams(teamsData);
             } catch (error) {
                 console.error('Error fetching teams:', error);
@@ -39,34 +38,38 @@ const Joinedteams = () => {
         };
 
         fetchTeams();
-    }, [mememail, memrole]);
+    }, [email, memrole]);
 
     return (
-        <div className="">
-            <h1 className="text-[60px] pl-[400px]"> Team&apos;s Joined By You</h1>
+        <div className="p-6 bg-gray-50 min-h-screen">
+            <h1 className="text-4xl font-bold text-center mb-6">Teams Joined By You</h1>
 
-            <table className="min-w-full bg-white border border-gray-300">
-                <thead>
-                    <tr>
-                        <th className="py-2 px-4 border-b"> Team Id</th>
-                        <th className="py-2 px-4 border-b"> Team Name</th>
-                        <th className="py-2 px-4 border-b"> Link</th>
-                    </tr>
-                </thead>
-                {teams.map((team) => (
-                    <tbody key={team.id}>
-                        <tr className="hover:bg-gray-100">
-                            <td className="py-2 px-4 border-b text-center">{team.teamid}</td>
-                            <td className="py-2 px-4 border-b text-center">{team.teamname}</td>
-                            <td className="py-2 px-4 border-b text-center">
-                                <Link href={`/${team.teamid}/deatils`}>
-                                    <button className="m-[10px] p-[6px] hover:bg-black rounded-[6px] hover:bg-opacity-30">View Details</button>
-                                </Link>
-                            </td>
+            <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
+                    <thead className="bg-gray-200">
+                        <tr>
+                            <th className="py-3 px-4 border-b text-left text-gray-600">Team ID</th>
+                            <th className="py-3 px-4 border-b text-left text-gray-600">Team Name</th>
+                            <th className="py-3 px-4 border-b text-left text-gray-600">Link</th>
                         </tr>
+                    </thead>
+                    <tbody>
+                        {teams.map((team) => (
+                            <tr key={team.id} className="hover:bg-gray-100 transition duration-200">
+                                <td className="py-2 px-4 border-b text-center">{team.teamid}</td>
+                                <td className="py-2 px-4 border-b text-center">{team.teamname}</td>
+                                <td className="py-2 px-4 border-b text-center">
+                                    <Link href={`/${team.teamid}/details`}>
+                                        <button className="bg-blue-600 text-white py-1 px-3 rounded-md hover:bg-blue-700 transition duration-200">
+                                            View Details
+                                        </button>
+                                    </Link>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
-                ))}
-            </table>
+                </table>
+            </div>
         </div>
     );
 };
