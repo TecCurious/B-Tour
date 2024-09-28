@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import Findallteams from "../Fetchdata/findteams";
 import { getAllTeamsForUser } from "@/action/actions";
 
 interface Team {

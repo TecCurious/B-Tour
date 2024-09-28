@@ -1,7 +1,6 @@
 import Findpayments from "@/components/FindPayments/ExpanceHistory";
 import Seeteammembers from "@/components/Teamdetails/seeteammembers";
 import Createpayment from "@/components/createpayment/CreateExpence";
-import Transactions from "@/components/dues/transactiondue";
 import Link from "next/link";
 import React from "react";
 

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Createteamcomp } from '@/action/createteam';
 import { useRouter } from 'next/navigation';
 import { generateRandomTeamId } from '../Generaterandom/randomtext';
 import { createTeam } from '@/action/actions';
