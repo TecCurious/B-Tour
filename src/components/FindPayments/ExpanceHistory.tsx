@@ -1,32 +1,40 @@
 'use client'
 
 import React, { useEffect, useState } from "react";
-import FindMembers from "../Fetchdata/findmembers";
-import Fetchpayments from "../Fetchdata/fetchpayments";
+import { getTeamExpensesWithDetails } from "@/action/actions";
 
-interface TeamMember {
+
+interface Expense {
+  id: string;                // Unique ID for the expense
+  title: string;             // Title or description of the expense
+  amount: number;            // Amount of the expense
+  createdAt: Date;           // Date when the expense was created
+  updatedAt: Date;           // Date when the expense was last updated
+  teamId: string;            // ID of the team associated with this expense
+  creatorId: string;         // ID of the team member who created the expense
+  team: {                    // Object representing the team this expense is associated with
     id: string;
-    teamid: string;
-    teamname: string;
-    memid: string;
-    memname: string;
-    mememail: string;
-    memphone: string;
-    memrole: string;
-    isverfied: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    name: string;
+  };
+  creator: {                 // Object representing the team member who created the expense
+    id: string;
+    userId: string;
+    teamId: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  };
+  shares: ExpenseShare[];    // Array of shares associated with the expense
 }
 
-interface Payment {
-    id: string;
-    teamid: string;
-    teamname: string;
-    creatememid: string;
-    memname: string;
-    mememail: string;
-    amount: number;
-    createdAt: Date;
+interface ExpenseShare {
+  id: string;                // Unique ID for the expense share
+  userId: string;            // ID of the user responsible for this share
+  amount: number;            // Amount of the share
+  paid: boolean;             // Whether the share has been paid
+  expenseId: string;         // ID of the associated expense
 }
 
 const Findpayments = (params: any) => {
@@ -34,7 +42,7 @@ const Findpayments = (params: any) => {
     
     // Get the email from localStorage
     const [mememail, setMemEmail] = useState<string>("");
-    const [payments, setPayments] = useState<Payment[] | string>([]);
+    const [payments, setPayments] = useState<any>([]);
     const [admin, setAdmin] = useState(false);
 
     useEffect(() => {
@@ -43,15 +51,16 @@ const Findpayments = (params: any) => {
         setMemEmail(email);
 
         const fetchData = async () => {
-            const teammem = await FindMembers(email, teamid);
+            // const teammem = await FindMembers(email, teamid);
 
-            if (Array.isArray(teammem)) {
-                const isAdmin = teammem.some((mem) => mem.mememail === email && mem.memrole === 'admin');
-                setAdmin(isAdmin);
-            }
+            // if (Array.isArray(teammem)) {
+            //     const isAdmin = teammem.some((mem) => mem.mememail === email && mem.memrole === 'admin');
+            //     setAdmin(isAdmin);
+            // }
 
-            const response = await Fetchpayments(email, teamid, admin);
+            const response = await getTeamExpensesWithDetails(teamid);
             setPayments(response);
+            console.log(response);
         };
 
         fetchData();
@@ -67,10 +76,10 @@ const Findpayments = (params: any) => {
                 <thead>
                     <tr>
                         <th className="py-2 px-4 border-b">Payment Id</th>
-                        <th className="py-2 px-4 border-b">Team Id</th>
+                        <th className="py-2 px-4 border-b">Payment Title</th>
                         <th className="py-2 px-4 border-b">Team Name</th>
-                        <th className="py-2 px-4 border-b">User Email</th>
-                        <th className="py-2 px-4 border-b">User Name</th>
+                        <th className="py-2 px-4 border-b">Member Name</th>
+                        <th className="py-2 px-4 border-b">Member Email</th>
                         <th className="py-2 px-4 border-b">Amount ( INR )</th>
                     </tr>
                 </thead>
@@ -80,10 +89,10 @@ const Findpayments = (params: any) => {
                             <tbody key={payment.creatememid}>
                                 <tr className="hover:bg-gray-100">
                                     <td className="py-2 px-4 border-b text-center">{payment.id}</td>
-                                    <td className="py-2 px-4 border-b text-center">{payment.teamid}</td>
-                                    <td className="py-2 px-4 border-b text-center">{payment.teamname}</td>
-                                    <td className="py-2 px-4 border-b text-center">{payment.mememail}</td>
-                                    <td className="py-2 px-4 border-b text-center">{payment.memname}</td>
+                                    <td className="py-2 px-4 border-b text-center">{payment.title}</td>
+                                    <td className="py-2 px-4 border-b text-center">{payment.team.name}</td>
+                                    <td className="py-2 px-4 border-b text-center">{payment.creator.user.name}</td>
+                                    <td className="py-2 px-4 border-b text-center">{payment.creator.user.email}</td>
                                     <td className="py-2 px-4 border-b text-center">₹ {payment.amount}</td>
                                 </tr>
                             </tbody>

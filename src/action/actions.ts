@@ -194,47 +194,47 @@ async function getTeamMemberAmounts(teamMemberId: string) {
 }
 
 // Updated function to update all team members' paid and payable amounts
-async function updateTeamMemberAmounts(
-  teamId: string,
-  updates: { memberId: string; paidAmount: number; payableAmount: number }[]
-) {
-  const team = await prisma.team.findUnique({
-    where: { id: teamId },
-    include: { members: true },
-  });
+// async function updateTeamMemberAmounts(
+//   teamId: string,
+//   updates: { memberId: string; paidAmount: number; payableAmount: number }[]
+// ) {
+//   const team = await prisma.team.findUnique({
+//     where: { id: teamId },
+//     include: { members: true },
+//   });
 
-  if (!team) {
-    throw new Error("Team not found");
-  }
+//   if (!team) {
+//     throw new Error("Team not found");
+//   }
 
-  const updatePromises = updates.map(async (update) => {
-    const member = team.members.find((m) => m.id === update.memberId);
-    if (!member) {
-      throw new Error(
-        `Team member with id ${update.memberId} not found in the team`
-      );
-    }
+//   const updatePromises = updates.map(async (update) => {
+//     const member = team.members.find((m) => m.id === update.memberId);
+//     if (!member) {
+//       throw new Error(
+//         `Team member with id ${update.memberId} not found in the team`
+//       );
+//     }
 
-    return prisma.teamMember.update({
-      where: { id: update.memberId },
-      data: {
-        paidAmount: { increment: update.paidAmount },
-        payableAmount: { increment: update.payableAmount },
-      },
-      include: {
-        user: { select: { name: true, email: true } },
-        team: { select: { name: true } },
-      },
-    });
-  });
+//     return prisma.teamMember.update({
+//       where: { id: update.memberId },
+//       data: {
+//         paidAmount: { increment: update.paidAmount },
+//         payableAmount: { increment: update.payableAmount },
+//       },
+//       include: {
+//         user: { select: { name: true, email: true } },
+//         team: { select: { name: true } },
+//       },
+//     });
+//   });
 
-  const updatedMembers = await Promise.all(updatePromises);
+//   const updatedMembers = await Promise.all(updatePromises);
 
-  return updatedMembers.map((member) => ({
-    ...member,
-    netBalance: member.paidAmount - member.payableAmount,
-  }));
-}
+//   return updatedMembers.map((member) => ({
+//     ...member,
+//     netBalance: member.paidAmount - member.payableAmount,
+//   }));
+// }
 
 // Updated function to create a team with user-provided ID and destination
 export async function createTeam(
@@ -386,59 +386,76 @@ export async function joinTeam(userId: string, teamId: string) {
 }
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.
-// create expense and shareExpense part
-
-// Function to create an expense and update team member balances
-async function createExpenseAndUpdateBalances(
-  creatorId: string,
+export async function createExpenseAndUpdateBalances(
+  creatorUserId: string,
   teamId: string,
   title: string,
-  amount: number,
-  shares: { memberId: string; amount: number }[]
+  amount: number
 ) {
-  // Start a transaction
   return await prisma.$transaction(async (prisma) => {
-    // Create the expense
+    // Get all team members
+    const teamMembers = await prisma.teamMember.findMany({
+      where: { teamId: teamId },
+      include: { user: true }, // Include user information
+    })
+
+    if (teamMembers.length === 0) {
+      throw new Error("No team members found for this team")
+    }
+
+    // Find the creator's team member record
+    const creatorMember = teamMembers.find(member => member.user.id === creatorUserId)
+    if (!creatorMember) {
+      throw new Error("Creator is not a member of this team")
+    }
+
+    // Calculate share amount for each member
+    const shareAmount = amount / teamMembers.length
+
+    // Create the expense with shares
     const expense = await prisma.expense.create({
       data: {
         title,
         amount,
         teamId,
-        creatorId,
+        creatorId: creatorMember.id, // Use the creator's team member ID
         shares: {
-          create: shares.map((share) => ({
-            memberId: share.memberId,
-            amount: share.amount,
+          create: teamMembers.map((member) => ({
+            memberId: member.id,
+            amount: shareAmount,
           })),
         },
       },
       include: {
         shares: true,
       },
-    });
+    })
 
-    // Update balances for all involved team members
-    for (const share of shares) {
-      await prisma.teamMember.update({
-        where: { id: share.memberId },
-        data: {
-          payableAmount: { increment: share.amount },
-        },
-      });
+    // Update balances for all team members
+    for (const member of teamMembers) {
+      if (member.id === creatorMember.id) {
+        // Update creator's paidAmount and payableAmount
+        await prisma.teamMember.update({
+          where: { id: member.id },
+          data: {
+            paidAmount: { increment: amount },
+            // payableAmount: { increment: shareAmount },
+          },
+        })
+      } else {
+        // Update other members' payableAmount
+        await prisma.teamMember.update({
+          where: { id: member.id },
+          data: {
+            payableAmount: { increment: shareAmount },
+          },
+        })
+      }
     }
 
-    // Update the creator's paidAmount
-    await prisma.teamMember.update({
-      where: { id: creatorId },
-      data: {
-        paidAmount: { increment: amount },
-      },
-    });
-
-    return expense;
-  });
+    return expense
+  })
 }
-
 // Function to get team member balances
 async function getTeamMemberBalances(teamId: string) {
   const teamMembers = await prisma.teamMember.findMany({
@@ -460,4 +477,50 @@ async function getTeamMemberBalances(teamId: string) {
     ...member,
     balance: member.paidAmount - member.payableAmount,
   }));
+}
+
+
+
+
+export async function getTeamExpensesWithDetails(teamId: string) {
+  try {
+    const expenses = await prisma.expense.findMany({
+      where: {
+        teamId: teamId
+      },
+      select: {
+        id: true,
+        title: true,
+        amount: true,
+        createdAt: true,
+        creator: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+
+    return expenses
+  } catch (error) {
+    console.error('Error fetching team expenses:', error)
+    throw error
+  
+  }
 }

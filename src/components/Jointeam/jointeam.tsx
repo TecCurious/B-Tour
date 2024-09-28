@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from "react";
-import { createmember } from "@/action/createmem";
 import { joinTeam } from "@/action/actions";
 
 const Createteam = () => {
