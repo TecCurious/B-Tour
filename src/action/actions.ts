@@ -1,22 +1,23 @@
-"use server"
+"use server";
 // Helper functions for data operations
 
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcrypt';
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient()
-
-
-
+const prisma = new PrismaClient();
 
 // User registration
-async function registerUser(name: string, email: string, password: string) {
-  const existingUser = await prisma.user.findUnique({ where: { email } })
+export async function registerUser(
+  name: string,
+  email: string,
+  password: string
+) {
+  const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
-    throw new Error('User with this email already exists')
+    throw new Error("User with this email already exists");
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10)
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const newUser = await prisma.user.create({
     data: {
@@ -24,7 +25,7 @@ async function registerUser(name: string, email: string, password: string) {
       email,
       password: hashedPassword,
     },
-  })
+  });
 
   // const token = jwt.sign({ userId: newUser.id }, JWT_SECRET, { expiresIn: '1d' })
 
@@ -35,19 +36,20 @@ async function registerUser(name: string, email: string, password: string) {
       email: newUser.email,
     },
     // token,
-  }
+  };
 }
 
 // User login
-async function loginUser(email: string, password: string) {
-  const user = await prisma.user.findUnique({ where: { email } })
+export async function loginUser(email: string, password: string) {
+  const user = await prisma.user.findUnique({ where: { email } });
+  console.log(user);
   if (!user) {
-    throw new Error('Invalid email or password')
+    throw new Error("Invalid email or password");
   }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password)
+  const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
-    throw new Error('Invalid email or password')
+    throw new Error("Invalid email or password");
   }
 
   // const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1d' })
@@ -58,86 +60,34 @@ async function loginUser(email: string, password: string) {
       name: user.name,
       email: user.email,
     },
-    token,
-  }
+    // token,
+  };
 }
 
-
-// Create a new expense and split it among team members
-async function createExpense(title: string, amount: number, teamId: string, creatorId: string) {
-  const team = await prisma.team.findUnique({
-    where: { id: teamId },
-    include: { members: true },
-  })
-
-  if (!team) throw new Error('Team not found')
-
-  const splitAmount = amount / team.members.length
-
-  const expense = await prisma.expense.create({
-    data: {
-      title,
-      amount,
-      teamId,
-      creatorId,
-      splits: {
-        create: team.members.map(member => ({
-          memberId: member.id,
-          amount: splitAmount,
-        })),
+// New function to get all members of a team
+export async function getAllTeamMembers(teamId: string) {
+  const teamMembers = await prisma.teamMember.findMany({
+    where: {
+      teamId: teamId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
       },
     },
-  })
+  });
 
-  // Update paid and payable amounts for team members
-  await Promise.all(team.members.map(member =>
-    prisma.teamMember.update({
-      where: { id: member.id },
-      data: {
-        paidAmount: member.id === creatorId ? { increment: amount } : { increment: 0 },
-        payableAmount: member.id !== creatorId ? { increment: splitAmount } : { increment: 0 },
-      },
-    })
-  ))
+  // Map to extract only the user information
+  const users = teamMembers.map(member => member.user);
+  console.log(users);
 
-  return expense
+  return users; // Return the array of user objects
 }
 
-// Get all expenses for a team with creator and split details
-async function getTeamExpenses(teamId: string) {
-  return prisma.expense.findMany({
-    where: { teamId },
-    include: {
-      creator: { include: { user: true } },
-      splits: { include: { member: { include: { user: true } } } },
-    },
-  })
-}
-
-// Get balance sheet for a team member
-async function getMemberBalance(teamMemberId: string) {
-  const member = await prisma.teamMember.findUnique({
-    where: { id: teamMemberId },
-    include: {
-      user: true,
-      team: true,
-      createdExpenses: true,
-      involvedExpenses: { include: { expense: true } },
-    },
-  })
-
-  if (!member) throw new Error('Team member not found')
-
-  return {
-    user: member.user,
-    team: member.team,
-    paidAmount: member.paidAmount,
-    payableAmount: member.payableAmount,
-    netBalance: member.paidAmount - member.payableAmount,
-  }
-}
-
-// New functions
 
 // Search team members
 async function searchTeamMembers(teamId: string, searchTerm: string) {
@@ -146,30 +96,30 @@ async function searchTeamMembers(teamId: string, searchTerm: string) {
       teamId,
       user: {
         OR: [
-          { name: { contains: searchTerm, mode: 'insensitive' } },
-          { email: { contains: searchTerm, mode: 'insensitive' } },
+          { name: { contains: searchTerm, mode: "insensitive" } },
+          { email: { contains: searchTerm, mode: "insensitive" } },
         ],
       },
     },
     include: { user: true },
-  })
+  });
 }
 
 // Get all expenses (with pagination)
 async function getAllExpenses(page: number = 1, perPage: number = 10) {
-  const skip = (page - 1) * perPage
+  const skip = (page - 1) * perPage;
   const [expenses, total] = await Promise.all([
     prisma.expense.findMany({
       skip,
       take: perPage,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
         creator: { include: { user: true } },
         team: true,
       },
     }),
     prisma.expense.count(),
-  ])
+  ]);
 
   return {
     expenses,
@@ -179,48 +129,48 @@ async function getAllExpenses(page: number = 1, perPage: number = 10) {
       total,
       totalPages: Math.ceil(total / perPage),
     },
-  }
+  };
 }
 
 // Create expense by team member
-async function createExpenseByTeamMember(title: string, amount: number, teamMemberId: string) {
-  const teamMember = await prisma.teamMember.findUnique({
-    where: { id: teamMemberId },
-    include: { team: { include: { members: true } } },
-  })
+// async function createExpenseByTeamMember(title: string, amount: number, teamMemberId: string) {
+//   const teamMember = await prisma.teamMember.findUnique({
+//     where: { id: teamMemberId },
+//     include: { team: { include: { members: true } } },
+//   })
 
-  if (!teamMember) throw new Error('Team member not found')
+//   if (!teamMember) throw new Error('Team member not found')
 
-  const splitAmount = amount / teamMember.team.members.length
+//   const splitAmount = amount / teamMember.team.members.length
 
-  const expense = await prisma.expense.create({
-    data: {
-      title,
-      amount,
-      teamId: teamMember.teamId,
-      creatorId: teamMember.id,
-      splits: {
-        create: teamMember.team.members.map(member => ({
-          memberId: member.id,
-          amount: splitAmount,
-        })),
-      },
-    },
-  })
+//   const expense = await prisma.expense.create({
+//     data: {
+//       title,
+//       amount,
+//       teamId: teamMember.teamId,
+//       creatorId: teamMember.id,
+//       splits: {
+//         create: teamMember.team.members.map(member => ({
+//           memberId: member.id,
+//           amount: splitAmount,
+//         })),
+//       },
+//     },
+//   })
 
-  // Update paid and payable amounts for team members
-  await Promise.all(teamMember.team.members.map(member =>
-    prisma.teamMember.update({
-      where: { id: member.id },
-      data: {
-        paidAmount: member.id === teamMemberId ? { increment: amount } : { increment: 0 },
-        payableAmount: member.id !== teamMemberId ? { increment: splitAmount } : { increment: 0 },
-      },
-    })
-  ))
+// Update paid and payable amounts for team members
+//   await Promise.all(teamMember.team.members.map(member =>
+//     prisma.teamMember.update({
+//       where: { id: member.id },
+//       data: {
+//         paidAmount: member.id === teamMemberId ? { increment: amount } : { increment: 0 },
+//         payableAmount: member.id !== teamMemberId ? { increment: splitAmount } : { increment: 0 },
+//       },
+//     })
+//   ))
 
-  return expense
-}
+//   return expense
+// }
 
 // Get team member's paid and payable amounts
 async function getTeamMemberAmounts(teamMemberId: string) {
@@ -233,34 +183,36 @@ async function getTeamMemberAmounts(teamMemberId: string) {
       user: { select: { name: true, email: true } },
       team: { select: { name: true } },
     },
-  })
+  });
 
-  if (!teamMember) throw new Error('Team member not found')
+  if (!teamMember) throw new Error("Team member not found");
 
   return {
     ...teamMember,
     netBalance: teamMember.paidAmount - teamMember.payableAmount,
-  }
+  };
 }
 
-
-
-
 // Updated function to update all team members' paid and payable amounts
-async function updateTeamMemberAmounts(teamId: string, updates: { memberId: string, paidAmount: number, payableAmount: number }[]) {
+async function updateTeamMemberAmounts(
+  teamId: string,
+  updates: { memberId: string; paidAmount: number; payableAmount: number }[]
+) {
   const team = await prisma.team.findUnique({
     where: { id: teamId },
     include: { members: true },
-  })
+  });
 
   if (!team) {
-    throw new Error('Team not found')
+    throw new Error("Team not found");
   }
 
   const updatePromises = updates.map(async (update) => {
-    const member = team.members.find(m => m.id === update.memberId)
+    const member = team.members.find((m) => m.id === update.memberId);
     if (!member) {
-      throw new Error(`Team member with id ${update.memberId} not found in the team`)
+      throw new Error(
+        `Team member with id ${update.memberId} not found in the team`
+      );
     }
 
     return prisma.teamMember.update({
@@ -273,13 +225,239 @@ async function updateTeamMemberAmounts(teamId: string, updates: { memberId: stri
         user: { select: { name: true, email: true } },
         team: { select: { name: true } },
       },
-    })
-  })
+    });
+  });
 
-  const updatedMembers = await Promise.all(updatePromises)
+  const updatedMembers = await Promise.all(updatePromises);
 
-  return updatedMembers.map(member => ({
+  return updatedMembers.map((member) => ({
     ...member,
     netBalance: member.paidAmount - member.payableAmount,
-  }))
+  }));
+}
+
+// Updated function to create a team with user-provided ID and destination
+export async function createTeam(
+  creatorId: string,
+  teamId: string,
+  teamName: string,
+  teamDestination: string | null = null
+) {
+  const creator = await prisma.user.findUnique({ where: { id: creatorId } });
+  if (!creator) {
+    throw new Error("User not found");
+  }
+
+  // Check if the team ID is already in use
+  const existingTeam = await prisma.team.findUnique({ where: { id: teamId } });
+  if (existingTeam) {
+    throw new Error("Team ID is already in use");
+  }
+
+  try {
+    const team = await prisma.team.create({
+      data: {
+        id: teamId,
+        name: teamName,
+        destination: teamDestination,
+        creatorId: creator.id,
+        members: {
+          create: {
+            userId: creator.id,
+          },
+        },
+      },
+      include: {
+        creator: { select: { name: true, email: true } },
+        members: { include: { user: { select: { name: true, email: true } } } },
+      },
+    });
+
+    return {
+      id: team.id,
+      name: team.name,
+      destination: team.destination,
+      creator: team.creator,
+      members: team.members.map((member) => ({
+        id: member.id,
+        user: member.user,
+      })),
+    };
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      throw new Error("Team ID is already in use");
+    }
+    throw error;
+  }
+}
+
+export async function createdTeam(creatorId: string) {
+  const teams = await prisma.team.findMany({
+    where: {
+      creatorId,
+    },
+    select: {
+      id: true, // Select the team ID
+      name: true, // Select the team name
+      destination: true, // Select the team destination
+      createdAt: true, // Select the creation date
+    },
+  });
+
+  return teams;
+}
+
+// Function to get all teams (created or joined) for a user
+
+export async function getAllTeamsForUser(userId: string) {
+  const teams = await prisma.team.findMany({
+    where: {
+      OR: [{ creatorId: userId }, { members: { some: { userId: userId } } }],
+    },
+    include: {
+      members: true,
+    },
+  });
+
+  return teams;
+}
+
+// Function to get only joined teams for a user
+export async function getJoinedTeamsForUser(userId: string) {
+  const joinedTeams = await prisma.team.findMany({
+    where: {
+      members: { some: { userId: userId } },
+      creatorId: { not: userId }, // Exclude teams created by the user
+    },
+    include: {
+      members: true,
+    },
+  });
+
+  return joinedTeams;
+}
+
+// Updated function to join a team using the team ID
+export async function joinTeam(userId: string, teamId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    include: { members: true },
+  });
+  if (!team) {
+    throw new Error("Team not found");
+  }
+
+  // Check if the user is already a member of the team
+  const existingMember = team.members.find(
+    (member) => member.userId === userId
+  );
+  if (existingMember) {
+    throw new Error("User is already a member of this team");
+  }
+
+  try {
+    const teamMember = await prisma.teamMember.create({
+      data: {
+        userId: user.id,
+        teamId: team.id,
+      },
+      include: {
+        user: { select: { name: true, email: true } },
+        team: { select: { name: true, destination: true } },
+      },
+    });
+
+    return {
+      id: teamMember.id,
+      user: teamMember.user,
+      team: teamMember.team,
+    };
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      throw new Error("User is already a member of this team");
+    }
+    throw error;
+  }
+}
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.
+// create expense and shareExpense part
+
+// Function to create an expense and update team member balances
+async function createExpenseAndUpdateBalances(
+  creatorId: string,
+  teamId: string,
+  title: string,
+  amount: number,
+  shares: { memberId: string; amount: number }[]
+) {
+  // Start a transaction
+  return await prisma.$transaction(async (prisma) => {
+    // Create the expense
+    const expense = await prisma.expense.create({
+      data: {
+        title,
+        amount,
+        teamId,
+        creatorId,
+        shares: {
+          create: shares.map((share) => ({
+            memberId: share.memberId,
+            amount: share.amount,
+          })),
+        },
+      },
+      include: {
+        shares: true,
+      },
+    });
+
+    // Update balances for all involved team members
+    for (const share of shares) {
+      await prisma.teamMember.update({
+        where: { id: share.memberId },
+        data: {
+          payableAmount: { increment: share.amount },
+        },
+      });
+    }
+
+    // Update the creator's paidAmount
+    await prisma.teamMember.update({
+      where: { id: creatorId },
+      data: {
+        paidAmount: { increment: amount },
+      },
+    });
+
+    return expense;
+  });
+}
+
+// Function to get team member balances
+async function getTeamMemberBalances(teamId: string) {
+  const teamMembers = await prisma.teamMember.findMany({
+    where: { teamId },
+    select: {
+      id: true,
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      paidAmount: true,
+      payableAmount: true,
+    },
+  });
+
+  return teamMembers.map((member) => ({
+    ...member,
+    balance: member.paidAmount - member.payableAmount,
+  }));
 }

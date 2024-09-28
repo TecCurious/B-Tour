@@ -1,22 +1,41 @@
 "use client"
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../store";
+import React, { useState, useEffect } from "react";
 import Joinedteam from "@/components/Jointeam/jointeam";
 import Createteam from "@/components/Createteam/createteam";
 import Createdteams from "@/components/Createteam/createdteams";
 import Joinedteams from "@/components/Jointeam/joinedteams";
 import Allteams from "@/components/Allmyteams/allteams";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-    const user = useSelector((state: RootState) => state.userState.user);
+    // Replace Redux state with localStorage
+    const [user, setUser] = useState<string | null>(null);
     const [Teamtype, setTeamtype] = useState('create');
+    const router = useRouter();
+
+    // Fetch user from localStorage when component mounts
+    useEffect(() => {
+        const storedUser = localStorage.getItem("email");
+        console.log(storedUser);
+        setUser(storedUser);
+    }, []);
+
+    // Logout function
+    const logout = () => {
+        localStorage.removeItem("email");
+        localStorage.removeItem("id");
+        localStorage.removeItem("teamId");
+        setUser(null);  // Clear the user state
+        router.push("/");
+        
+
+    };
 
     return (
         <>
-            {/* {user === null ? ( */}
+            {user === null ? (
                 <></>
-            {/* ) : ( */}
+            ) : (
                 <div className="flex">
                     {/* Sidebar */}
                     <div className="w-1/4 bg-gray-800 text-white h-screen p-5">
@@ -39,6 +58,8 @@ export default function Home() {
                         >
                             Show My Teams
                         </button>
+
+                        <button onClick={logout} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Logout</button>
                     </div>
 
                     {/* Main Content */}
@@ -58,7 +79,7 @@ export default function Home() {
                         ) : null}
                     </div>
                 </div>
-            {/* )} */}
+            )}
         </>
     );
 }

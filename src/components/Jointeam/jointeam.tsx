@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { createmember } from "@/action/createmem";
+import { joinTeam } from "@/action/actions";
 
 const Createteam = () => {
     const [email, setEmail] = useState<string>('');
     const [teamid, setTeamid] = useState('');
-    const [teamname, setTeamname] = useState('');
+    // const [teamname, setTeamname] = useState('');
     const [message, setMessage] = useState('');
     const [formVisible, setFormVisible] = useState(false); // State to control form visibility
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('id') || '' : '';
 
     useEffect(() => {
         const storedEmail = localStorage.getItem('email');
@@ -18,7 +20,7 @@ const Createteam = () => {
     }, []);
 
     const handleSubmit = async () => {
-        if (!teamid || !teamname) {
+        if (!teamid ) {
             setMessage('Please fill in all fields.');
             return;
         }
@@ -26,13 +28,12 @@ const Createteam = () => {
         setMessage('Joining Team...');
 
         try {
-            const response = await createmember(email, teamid, teamname);
+            const response = await joinTeam(userId, teamid);
 
             if (typeof response === "string") {
                 setMessage(response);
             } else {
                 setTeamid('');
-                setTeamname('');
                 setMessage('Successfully joined the team!');
             }
         } catch (err) {
@@ -58,13 +59,13 @@ const Createteam = () => {
                         placeholder="Enter Team ID" 
                         className="border border-gray-300 rounded-md p-2 w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <input 
+                    {/* <input 
                         type="text" 
                         value={teamname} 
                         onChange={(e) => setTeamname(e.target.value)} 
                         placeholder="Enter Team Name" 
                         className="border border-gray-300 rounded-md p-2 w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    /> */}
                     <button 
                         onClick={handleSubmit} 
                         className="w-full bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700 transition duration-200"

@@ -26,45 +26,46 @@ model User {
 }
 
 model Team {
-  id        String   @id @default(uuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  creatorId String
-  creator   User     @relation("TeamCreator", fields: [creatorId], references: [id])
-  members   TeamMember[]
-  expenses  Expense[]
+  id          String   @id // User-provided ID
+  name        String
+  destination String?  // Changed from description to destination
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  creatorId   String
+  creator     User     @relation("TeamCreator", fields: [creatorId], references: [id])
+  members     TeamMember[]
+  expenses    Expense[]
 }
 
 model TeamMember {
-  id        String   @id @default(uuid())
-  userId    String
-  teamId    String
-  joinedAt  DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  team      Team     @relation(fields: [teamId], references: [id])
-  paidAmount Float   @default(0)
-  payableAmount Float @default(0)
+  id            String   @id @default(uuid())
+  userId        String
+  teamId        String
+  joinedAt      DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+  team          Team     @relation(fields: [teamId], references: [id])
+  paidAmount    Float    @default(0)
+  payableAmount Float    @default(0)
   createdExpenses Expense[] @relation("ExpenseCreator")
-  involvedExpenses ExpenseSplit[]
+  expenseShares ExpenseShare[]
 
   @@unique([userId, teamId])
 }
 
 model Expense {
-  id        String   @id @default(uuid())
-  title     String
-  amount    Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  teamId    String
-  creatorId String
-  team      Team     @relation(fields: [teamId], references: [id])
-  creator   TeamMember @relation("ExpenseCreator", fields: [creatorId], references: [id])
-  splits    ExpenseSplit[]
+  id          String   @id @default(uuid())
+  title       String
+  amount      Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  teamId      String
+  creatorId   String
+  team        Team     @relation(fields: [teamId], references: [id])
+  creator     TeamMember @relation("ExpenseCreator", fields: [creatorId], references: [id])
+  shares      ExpenseShare[]
 }
 
-model ExpenseSplit {
+model ExpenseShare {
   id        String   @id @default(uuid())
   expenseId String
   memberId  String

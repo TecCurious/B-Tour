@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { signUp } from '../../action/signUp';
+// import { signUp } from '../../action/signUp';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, User, Phone, Lock } from 'lucide-react';
 import Link from 'next/link';
+import { registerUser } from '@/action/actions';
 
 const SignUpForm = () => {
   const [formData, setFormData] = useState({
@@ -25,6 +26,7 @@ const SignUpForm = () => {
     if (storedEmail) {
       router.push('/dashboard');
     }
+    
   }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +48,10 @@ const SignUpForm = () => {
     setMessage("Signing up...");
 
     try {
-      const response = await signUp(formData.email, formData.name, formData.phone, formData.password);
+      const response = await registerUser(formData.name, formData.email , formData.password);
+      console.log(response);
+      localStorage.setItem("id", response.user.id);
+      localStorage.setItem("email", response.user.email); 
       router.push('/dashboard');
     } catch (error) {
       setMessage("An error occurred during sign up");
@@ -101,7 +106,7 @@ const SignUpForm = () => {
                   />
                 </div>
               </div>
-              <div className="relative">
+              {/* <div className="relative">
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                 <div className="relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -119,7 +124,7 @@ const SignUpForm = () => {
                     onChange={handleChange}
                   />
                 </div>
-              </div>
+              </div> */}
               <div className="relative">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <div className="relative rounded-md shadow-sm">
@@ -177,7 +182,7 @@ const SignUpForm = () => {
               </button>
             </div>
           </form>
-          <Link href={'/signin'}>
+          <Link href={'/login'}>
             <button className="py-2 px-5 bg-green-700 text-white border rounded-full">Get Started</button>
           </Link>
 

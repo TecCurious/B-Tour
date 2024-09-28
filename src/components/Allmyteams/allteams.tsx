@@ -3,25 +3,20 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Findallteams from "../Fetchdata/findteams";
+import { getAllTeamsForUser } from "@/action/actions";
 
-interface TeamMember {
+interface Team {
     id: string;
-    teamid: string;
-    teamname: string;
-    memid: string;
-    memname: string;
-    mememail: string;
-    memphone: string;
-    memrole: string;
-    isverfied: boolean;
+    name: string;
+    destination: string | null; // Allow null in addition to string
     createdAt: Date;
-    updatedAt: Date;
-}
+  }
+  
 
 const Allteams = () => {
     const [email, setEmail] = useState<string>('');
-    const [teams, setTeams] = useState<TeamMember[]>([]);
-    const memrole = "admin";
+    const [teams, setTeams] = useState<Team[]>([]);
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('id') || '' : '';
 
     useEffect(() => {
         const storedEmail = localStorage.getItem('email');
@@ -34,7 +29,7 @@ const Allteams = () => {
         const fetchTeams = async () => {
             if (email) {
                 try {
-                    const teamsData = await Findallteams(email);
+                    const teamsData = await getAllTeamsForUser(userId);
                     setTeams(teamsData);
                 } catch (error) {
                     console.error('Error fetching teams:', error);
@@ -55,18 +50,18 @@ const Allteams = () => {
                         <tr>
                             <th className="py-3 px-4 border-b text-left text-gray-600">Team ID</th>
                             <th className="py-3 px-4 border-b text-left text-gray-600">Team Name</th>
-                            <th className="py-3 px-4 border-b text-left text-gray-600">Member Type</th>
+                            <th className="py-3 px-4 border-b text-left text-gray-600">Destination</th>
                             <th className="py-3 px-4 border-b text-left text-gray-600">Link</th>
                         </tr>
                     </thead>
                     <tbody>
                         {teams.map((team) => (
                             <tr key={team.id} className="hover:bg-gray-100 transition duration-200">
-                                <td className="py-2 px-4 border-b text-center">{team.teamid}</td>
-                                <td className="py-2 px-4 border-b text-center">{team.teamname}</td>
-                                <td className="py-2 px-4 border-b text-center">{team.memrole}</td>
+                                <td className="py-2 px-4 border-b text-center">{team.id}</td>
+                                <td className="py-2 px-4 border-b text-center">{team.name}</td>
+                                <td className="py-2 px-4 border-b text-center">{team.destination}</td>
                                 <td className="py-2 px-4 border-b text-center">
-                                    <Link href={`/${team.teamid}/details`}>
+                                    <Link href={`/${team.id}/details`}>
                                         <button className="bg-blue-600 text-white py-1 px-3 rounded-md hover:bg-blue-700 transition duration-200">
                                             View Details
                                         </button>

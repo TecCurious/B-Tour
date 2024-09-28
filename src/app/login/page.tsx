@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState , useEffect} from 'react';
-import { useRouter } from 'next/navigation';
-import { signIn } from '@/action/signIn';
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { loginUser } from '@/action/actions';
 
 const SignInForm = () => {
   const router = useRouter();
@@ -30,11 +30,15 @@ const SignInForm = () => {
    
 
     try {
-      const signInResponse = await signIn(email, password);
+      const signInResponse = await loginUser(email, password);
+          console.log(email);
+          console.log(password);
+          console.log(signInResponse);
       
-      if (String(signInResponse) === 'true') {
+      if (signInResponse) {
         // setUser(email); // Store user data in state
-        localStorage.setItem  ("email", email);
+        localStorage.setItem("email", signInResponse.user.email);
+        localStorage.setItem("id", signInResponse.user.id);
         router.push('/dashboard');
       } else {
         setMessage('Invalid credentials. Please try again.');

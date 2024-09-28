@@ -4,12 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { Createteamcomp } from '@/action/createteam';
 import { useRouter } from 'next/navigation';
 import { generateRandomTeamId } from '../Generaterandom/randomtext';
+import { createTeam } from '@/action/actions';
 
 const Createteam = () => {
     // Retrieve email from local storage and default to an empty string if null
     const email = typeof window !== 'undefined' ? localStorage.getItem('email') || '' : '';
+    const creatorId = typeof window !== 'undefined' ? localStorage.getItem('id') || '' : '';
     const [teamid, setTeamid] = useState(generateRandomTeamId());
     const [teamname, setTeamname] = useState('');
+    const [destination, setDestination] = useState('');
     const [message, setMessage] = useState('');
     const [formVisible, setFormVisible] = useState(false); // State to control form visibility
 
@@ -24,7 +27,7 @@ const Createteam = () => {
         setMessage('Creating Team...');
 
         try {
-            await Createteamcomp(email, teamid, teamname);
+            await createTeam(creatorId, teamid, teamname, destination);
             setTeamid(''); // Reset team ID
             setTeamname(''); // Reset team name
             setMessage('Team created successfully!');
@@ -57,6 +60,13 @@ const Createteam = () => {
                         value={teamname} 
                         onChange={(e) => setTeamname(e.target.value)} 
                         placeholder="Enter Team Name" 
+                        className="border border-gray-300 rounded-md p-2 w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input 
+                        type="text" 
+                        value={destination} 
+                        onChange={(e) => setDestination(e.target.value)} 
+                        placeholder="Enter Destination" 
                         className="border border-gray-300 rounded-md p-2 w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <button 
