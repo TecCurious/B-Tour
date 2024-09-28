@@ -28,11 +28,16 @@ export default async function Home() {
            </div>
    
            <div className="text-[#1B3A60] my-3 w-full md:w-[40%]">
-             <h1 className=" font-bold text-[15px] ml-3">
+             {/* <h1 className=" font-bold text-[15px] ml-3">
              Trusted Leader in Travel Expense Splitting
-             </h1>
+             </h1> */}
              <h1 className=" font-bold text-[30px] py-3">
-               #1 Fair Travel Expense Splitting
+             <div className="text-xl font-bold uppercase tracking-wider relative group cursor-pointer">
+        <span className="text-gray-800">B</span>
+        <span className="text-blue-500">Tour</span>
+        <span className="ml-2">Travel Expense Splitting</span>
+        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-in-out"></div>
+      </div> 
                {/* <Typewriter text="Across the World" /> */}
              </h1>
              <p className=" py-3">
@@ -60,7 +65,7 @@ export default async function Home() {
                  Get Started
                </Button> */}
                 <Link href={'/register'}>
-         <button className="py-2 px-5 bg-green-700 text-white border rounded-full">Get Started</button>
+         <button className="py-2 px-5 bg-blue-500 text-white border rounded-full">Get Started</button>
        </Link>
        <br/>
     {/* <Link href={'/signin'}>

@@ -4,9 +4,14 @@ import { useRouter } from "next/navigation";
 import { getAllTeamMembers } from "@/action/actions";
 
 interface TeamMember {
-  id: string; // Unique ID for the user
-  name: string; // Name of the user
-  email: string; // Email of the user
+  id: string;
+  paidAmount: number;
+  payableAmount: number;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 const Seeteammembers = (params: any) => {
@@ -49,10 +54,16 @@ const Seeteammembers = (params: any) => {
               Member ID
             </th>
             <th className="py-3 px-6 border-b text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+              Member Name
+            </th>
+            <th className="py-3 px-6 border-b text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
               Member Email
             </th>
             <th className="py-3 px-6 border-b text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-              Member Name
+              Paid Amount
+            </th>
+            <th className="py-3 px-6 border-b text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+              Payble Amount
             </th>
           </tr>
         </thead>
@@ -61,8 +72,10 @@ const Seeteammembers = (params: any) => {
             teammembers.map((teammem: TeamMember) => (
               <tr key={teammem.id} className="hover:bg-gray-50">
                 <td className="py-4 px-6 border-b text-sm text-gray-700">{teammem.id}</td>
-                <td className="py-4 px-6 border-b text-sm text-gray-700">{teammem.email}</td>
-                <td className="py-4 px-6 border-b text-sm text-gray-700">{teammem.name}</td>
+                <td className="py-4 px-6 border-b text-sm text-gray-700">{teammem.user.name}</td>
+                <td className="py-4 px-6 border-b text-sm text-gray-700">{teammem.user.email}</td>
+                <td className="py-4 px-6 border-b text-sm text-gray-700">{teammem.paidAmount}</td>
+                <td className="py-4 px-6 border-b text-sm text-red-500">{teammem.payableAmount}</td>
               </tr>
             ))
           ) : (

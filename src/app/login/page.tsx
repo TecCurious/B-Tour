@@ -4,6 +4,7 @@ import React, { useState , useEffect} from 'react';
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { loginUser } from '@/action/actions';
+import Link from 'next/link';
 
 const SignInForm = () => {
   const router = useRouter();
@@ -55,9 +56,8 @@ const SignInForm = () => {
   };
 
   return (
-    <div className="flex p-8 bg-gray-100 min-h-screen">
-      {/* Left side with background image */}
-      <div className="hidden lg:block lg:w-1/2 bg-cover bg-center" style={{backgroundImage: "url('/image/bt.jpg')"}}></div>
+    <div className="flex p-8 bg-gray-100 min-h-[91vh]">
+      <div className='flex items-center justify-center w-[50%] '><img className='rounded-md' src="/image/bt.jpg" alt="" /></div>
 
       {/* Right side with form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-24">
@@ -121,12 +121,17 @@ const SignInForm = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-colors duration-200"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>
             </div>
           </form>
+          <div className='flex items-center justify-center mt-4'>
+          <Link href={'/register'}>
+            <h3 className="py-2 px-5 ">register?</h3>
+          </Link>
+          </div>
 
           {message && (
             <div className={`mt-4 text-center text-sm ${message.includes("error") ? "text-red-600" : "text-green-600"}`}>
